@@ -1,0 +1,21 @@
+{
+  "BACK": "Zurück",
+  "OK": "OK",
+  "CONFIRM": "Bestätigen",
+  "DELETE": "Löschen",
+  "CANCEL": "Abbruch",
+  "LOGIN_MSG_LOADING": "Sie werden angemeldet. Bitte warten...",
+  "LOGIN_MSG_ERROR_TITLE": "Fehler",
+  "LOGIN_MSG_ERROR_SUBTITLE": "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+  "LOGIN_USERNAME": "Benutzername",
+  "LOGIN_PASSWORD": "Passwort",
+  "LOGIN_SIGNIN": "Anmelden",
+  "LOGIN_SIGNOUT": "Abmelden",
+  "CART_TITLE": "Warenkorb",
+  "CART_AMOUNT": "Anzahl",
+  "CART_MSG_AMOUNT": "Bitte geben Sie die gewünschte Anzahl ein.",
+  "CART_CHECKIN": "Rein",
+  "CART_CHECKOUT": "Raus",
+  "CART_MSG_RESET_TITLE": "Warenkorb zurücksetzen",
+  "CART_MSG_RESET_MESSAGE": "Wollen Sie den Warenkorb wirklich leeren? Damit gehen alle eingegebenen Daten verloren."
+}

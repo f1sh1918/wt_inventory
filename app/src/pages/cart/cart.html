@@ -1,0 +1,38 @@
+<ion-header>
+    <ion-navbar>
+        <ion-title>{{'CART_TITLE' | translate}}</ion-title>
+        <ion-buttons end>
+            <button ion-button icon-only (tap)="refresh()">
+                <ion-icon name="refresh"></ion-icon>
+            </button>
+            <button ion-button icon-only (tap)="resetItems()">
+                <ion-icon name="trash"></ion-icon>
+            </button>
+            <button ion-button icon-only (tap)="sendItems()">
+                <ion-icon name="mail"></ion-icon>
+            </button>
+        </ion-buttons>
+    </ion-navbar>
+</ion-header>
+<ion-content padding>
+    <ion-list>
+        <ion-item-sliding *ngFor="let item of items">
+            <ion-item>
+                <ion-avatar item-start [class]="item.amount >= 0 ? 'green' : 'red'"></ion-avatar>
+                <h2>{{item.name}}</h2>
+                <p>{{'CART_AMOUNT' | translate}}: {{item.amount}}</p>
+            </ion-item>
+            <ion-item-options side="right">
+                <button ion-button color="danger" (tap)="removeItem(item)">
+                    <ion-icon name="trash"></ion-icon>
+                    {{'DELETE' | translate}}
+                </button>
+            </ion-item-options>
+        </ion-item-sliding>
+    </ion-list>
+    <ion-fab bottom right>
+        <button ion-fab (tap)="scanBarcode()">
+            <ion-icon name="barcode"></ion-icon>
+        </button>
+    </ion-fab>
+</ion-content>
