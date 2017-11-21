@@ -1,5 +1,6 @@
+import {Costcenter} from "./costcenter";
 export interface Item {
-    id: number;
     name: string;
     amount: number;
+    costcenter: Costcenter;
 }

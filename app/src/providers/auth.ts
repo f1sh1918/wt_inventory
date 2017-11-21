@@ -1,12 +1,13 @@
-import {HttpClient} from '@angular/common/http';
-import {Injectable} from '@angular/core';
-import {Auth} from '../interfaces/auth';
+import {HttpClient} from "@angular/common/http";
+import {Injectable} from "@angular/core";
+import {Auth} from "../interfaces/auth";
 
 @Injectable()
 export class AuthProvider {
 
     // API-URL
-    private apiUrl = 'http://172.18.100.71:1234';
+    // public apiUrl = 'http://172.18.100.71:12345';
+    public apiUrl = 'http://194.156.206.161:12345';
 
     constructor(private http: HttpClient) {
     }
@@ -24,7 +25,7 @@ export class AuthProvider {
                 let auth = response['data'] as Auth;
 
                 // Prüfen ob parsen erfolgreich und Token vorhanden
-                if (auth && auth.token) {
+                if (auth && auth.authToken) {
                     // -(ja)-> Zugang erteilt zurückgeben
                     localStorage.setItem('inventoryUser', JSON.stringify(auth));
                     return true;
@@ -35,6 +36,7 @@ export class AuthProvider {
 
             })
             .catch(this.handleError);
+
 
     }
 

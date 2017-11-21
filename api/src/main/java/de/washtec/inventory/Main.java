@@ -1,16 +1,27 @@
 package de.washtec.inventory;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.google.gson.Gson;
+import de.washtec.inventory.helper.Asset;
+import de.washtec.inventory.helper.Auth;
+import de.washtec.inventory.helper.Transaction;
+import de.washtec.inventory.response.RAuth;
 import org.apache.log4j.Logger;
+import spark.Request;
+import spark.Response;
 
 import javax.naming.AuthenticationException;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.io.UnsupportedEncodingException;
+import java.sql.*;
 import java.util.Hashtable;
 
 import static spark.Spark.*;
@@ -19,7 +30,7 @@ public class Main {
 
     // Logger zum Schreiben in die Console sowie Speichern in eine Datei (siehe log4j.properties)
     private static final Logger logger = Logger.getLogger(Main.class);
-
+    private static final String UID = "UID";
     public static void main(String[] args) {
 
         // gson Instanz für JSON
@@ -30,15 +41,176 @@ public class Main {
         initCors("*", "*", "*");
 
         post("/authenticate", (request, response) -> {
+
+            Auth auth = null;
+            boolean error = false;
+
+            try {
+
+                auth = gson.fromJson(request.body(), Auth.class);
+                auth.username = auth.username.toLowerCase().trim();
+
+            } catch (Exception e) {
+                logger.error(e.getMessage());
+                error = true;
+            }
+
+            if (auth == null || error) {
+                halt(Config.BAD_REQUEST);
+            }
+
+            if (!validateLogin(auth.username, auth.password)) {
+                halt(Config.UNAUTHORIZED);
+            }
+
+            String token = null;
+
+            try {
+
+                // Token mit HMAC256 erstellen
+                Algorithm algorithm = Algorithm.HMAC256(Config.JWT_SECRET);
+
+                token = JWT.create()
+                        .withIssuer(Config.JWT_ISSUER)
+                        .withIssuedAt(new java.util.Date())
+                        .withSubject(Config.JWT_SUBJECT)
+                        .sign(algorithm);
+
+            } catch (UnsupportedEncodingException | JWTCreationException exception) {
+                error = true;
+            }
+
+            // Bei einem Fehler abbrechen
+            if (error) {
+                halt(Config.SERVER_ERROR);
+            }
+
+            // Datenbank Variablen anlegen
+            Connection connection = null;
+            PreparedStatement statement = null;
+
+            // Token in Datenbank schreiben
+            try {
+
+                // Treiber finden
+                Class.forName("org.postgresql.Driver");
+                // Verbindung aufbauen
+                connection = DriverManager.getConnection("jdbc:postgresql://" + Config.APP_HOST + "/" + Config.APP_DATABASE, Config.APP_USERNAME, Config.APP_PASSWORD);
+                // Nicht automatisch commiten
+                connection.setAutoCommit(false);
+
+                // Neues Token in Datenbank einfügen
+                statement = connection.prepareStatement("INSERT INTO \"" + Config.TABLE_TOKEN + "\" (\"" +
+                        Config.COL_TOKEN_ACCOUNT + "\", \"" +
+                        Config.COL_TOKEN_DESCRIPTION + "\", \"" +
+                        Config.COL_CMDB_ACTIVE + "\", \"" +
+                        Config.COL_ASSET_CREATED + "\") VALUES (?, ?, ?, NOW())");
+
+                // Parameter setzen
+                statement.setString(1, auth.username);
+                statement.setString(2, token);
+                statement.setBoolean(3, Config.CMDB_ACTIVE);
+
+                // Datensatz einfügen und commiten
+                statement.executeUpdate();
+                connection.commit();
+
+            } catch (Exception e) {
+                logger.error(e.getMessage());
+                error = true;
+            } finally {
+                // Verbindung schließen
+                closeConnection(connection, statement, null);
+            }
+
+            // Bei einem Fehler abbrechen
+            if (error) {
+                halt(Config.SERVER_ERROR);
+            }
+
+
+            auth.password = null;
+            auth.authToken = token;
+
+            // Rückgabe des neu generierten Tokens
+            logger.info("[AUTH] account: " + auth.username + ", token: " + auth.authToken);
+            response.status(Config.CREATED);
+            response.type("application/json");
+            return new RAuth(auth);
+
+        }, gson::toJson);
+
+        get("/costcenter", (request, response) -> {
             return null;
         }, gson::toJson);
 
-        get("/items", (request, response) -> {
-            return null;
-        }, gson::toJson);
+        post("/transaction", (request, response) -> {
+            if (!validateRequest(request, response)) {
+                halt(Config.UNAUTHORIZED);
+            }
+            Transaction transaction= null;
+            boolean error = false;
+            try {
 
-        post("/items", (request, response) -> {
-            return null;
+                transaction = gson.fromJson(request.body(), Transaction.class);
+
+            } catch (Exception e) {
+                logger.error(e.getMessage());
+                error = true;
+            }
+            if (transaction == null || error) {
+                halt(Config.BAD_REQUEST);
+            }
+          for (Asset asset:transaction.data)  {
+
+              // Datenbank Variablen anlegen
+              Connection connection = null;
+              PreparedStatement statement = null;
+
+
+              try {
+
+                  // Treiber suchen
+                  Class.forName("org.postgresql.Driver");
+                  // Verbindung aufbauen
+                  connection = DriverManager.getConnection("jdbc:postgresql://" + Config.CMDB_HOST + "/" + Config.CMDB_DATABASE, Config.CMDB_USERNAME, Config.CMDB_PASSWORD);
+
+                  // Token mit übergebener ID auswählen
+                  statement = connection.prepareStatement("INSERT INTO \"" + Config.TABLE_TRANSACTION +
+                          "\" ( \"" +
+                          Config.COL_ASSET_CREATED + "\", \"" +
+                          Config.COL_CMDB_CISTATE + "\", \"" +
+                          Config.COL_TRANSACTION_AMOUNT + "\", \"" +
+                          Config.COL_TRANSACTION_COSTCENTER + "\", \"" +
+                          Config.COL_TRANSACTION_PRODUCT + "\", \"" +
+                          Config.COL_TRANSACTION_USERNAME + "\") VALUES (NOW(),?,?,?,(SELECT \"" +
+                          Config.COL_PRODUCT_ID  + "\" from \"" +
+                                  Config.TABLE_PRODUCT + "\" WHERE \"" +
+                                  Config.COL_PRODUCT_DESCRIPTION  + "\" = ?),? )"
+                          );
+
+
+                  // Parameter setzen
+                  statement.setInt(1, Config.CMDB_CISTATE);
+                  statement.setInt(2, asset.amount);
+                  statement.setInt(3, asset.costcenterId);
+                  statement.setString(4, asset.barcode);
+                  statement.setString(5, request.attribute(UID));
+
+              statement.execute();
+
+
+              } catch (Exception e) {
+                  logger.error(e.getMessage());
+                  error = true;
+
+              } finally {
+                  // Verbindung schließen
+                  closeConnection(connection, statement, null);
+              }
+
+          }
+          return error;
         }, gson::toJson);
 
     }
@@ -122,5 +294,110 @@ public class Main {
             logger.error(e.getMessage());
         }
     }
+
+    // Prüft ein Token auf Gültigkeit
+    private static String validateToken(String token) {
+
+        // Datenbank Variablen anlegen
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        // Mit null initialisieren, falls später kein Wert gefunden
+        String result = null;
+
+        try {
+
+            // Treiber suchen
+            Class.forName("org.postgresql.Driver");
+            // Verbindung aufbauen
+            connection = DriverManager.getConnection("jdbc:postgresql://" + Config.APP_HOST + "/" + Config.APP_DATABASE, Config.APP_USERNAME, Config.APP_PASSWORD);
+
+            // Token mit übergebener ID auswählen
+            statement = connection.prepareStatement("SELECT \"" + Config.COL_TOKEN_ACCOUNT +
+                    "\" FROM \"" +
+                    Config.TABLE_TOKEN + "\" WHERE \"" +
+                    Config.COL_TOKEN_DESCRIPTION + "\" = ? AND \"" +
+                    Config.COL_CMDB_ACTIVE + "\" = ? AND \"" +
+                    Config.COL_CMDB_STATUS + "\" = ?");
+
+            // Parameter setzen
+            statement.setString(1, token);
+            statement.setBoolean(2, Config.CMDB_ACTIVE);
+            statement.setString(3, Config.CMDB_STATUS);
+
+            // Ergebnis in ResultSet zwischenspeichern
+            resultSet = statement.executeQuery();
+
+            // Falls ein Eintrag vorhanden -> ID, Land, IsExternal holen
+             if (resultSet.next()) {
+                 result = resultSet.getString(Config.COL_TOKEN_ACCOUNT);
+
+            }
+
+
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            result = null;
+        } finally {
+            // Verbindung schließen
+            closeConnection(connection, statement, resultSet);
+        }
+
+        // Ergebnis zurückgeben
+        return result;
+
+    }
+
+    // Prüft ob es sich um eine authorisierte Anfrage handelt
+    private static boolean validateRequest(Request request, Response response) {
+
+        // Prüfen ob Authorization Header vorhanden
+        if (request.headers("Authorization") == null || request.headers("Authorization").isEmpty()) {
+            return false;
+        }
+
+        // JWT anlegen
+        DecodedJWT jwt;
+
+        // Prüfen ob es sich um ein unverfälschtes Token handelt
+        try {
+
+            Algorithm algorithm = Algorithm.HMAC256(Config.JWT_SECRET);
+
+            JWTVerifier verifier = JWT.require(algorithm)
+                    .withIssuer(Config.JWT_ISSUER)
+                    .withSubject(Config.JWT_SUBJECT)
+                    .build();
+
+            jwt = verifier.verify(request.headers("Authorization"));
+
+        } catch (UnsupportedEncodingException | JWTVerificationException exception) {
+            jwt = null;
+        }
+
+        if (jwt == null) {
+            return false;
+        }
+
+        // Prüfen ob es sich um ein gültiges Token handelt
+        String result = validateToken(jwt.getToken());
+
+        // Bei Fehler oder ungültigem Token -> beenden
+        if (result == null) {
+            return false;
+        }
+
+
+
+        // Typ der Antwort setzen
+        response.type("application/json");
+        // Benutzer-ID in Request hinterlegen
+        request.attribute(UID, result);
+        // Land des Accounts hinterlegen
+
+        return true;
+
+    }
+
 
 }

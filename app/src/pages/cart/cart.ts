@@ -1,10 +1,12 @@
-import {Component} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
-import {Item} from '../../interfaces/item';
-import {BarcodeScanner, BarcodeScannerOptions} from '@ionic-native/barcode-scanner';
-import {AlertController} from 'ionic-angular';
-import {Storage} from '@ionic/storage';
-import {ApiProvider} from '../../providers/api';
+import {Component} from "@angular/core";
+import {TranslateService} from "@ngx-translate/core";
+import {Item} from "../../interfaces/item";
+import {BarcodeScanner, BarcodeScannerOptions} from "@ionic-native/barcode-scanner";
+import {AlertController, ModalController} from "ionic-angular";
+import {Storage} from "@ionic/storage";
+import {ApiProvider} from "../../providers/api";
+import {TransactionPage} from "../transaction/transaction";
+import {Costcenter} from "../../interfaces/costcenter";
 
 @Component({
     selector: 'page-cart',
@@ -13,6 +15,7 @@ import {ApiProvider} from '../../providers/api';
 export class CartPage {
 
     items: Item[] = [];
+    costcenters: Costcenter[] = [];
 
     // Lokalisierung
     amountTitle: string;
@@ -28,7 +31,8 @@ export class CartPage {
                 private barcodeScanner: BarcodeScanner,
                 private alertCtrl: AlertController,
                 private storage: Storage,
-                private apiProvider: ApiProvider) {
+                private apiProvider: ApiProvider,
+                private modal: ModalController) {
 
         this.translateService.get('CART_AMOUNT').subscribe(value => this.amountTitle = value);
         this.translateService.get('CART_MSG_AMOUNT').subscribe(value => this.amountText = value);
@@ -50,6 +54,7 @@ export class CartPage {
 
     }
 
+
     scanBarcode(): void {
 
         const options: BarcodeScannerOptions = {
@@ -57,47 +62,14 @@ export class CartPage {
         };
 
         this.barcodeScanner.scan(options).then((barcodeData) => {
+            let modal = this.modal.create(TransactionPage, {barcode: barcodeData.text, costcenters: this.costcenters});
+            modal.onDidDismiss(item => {
+                if (item) {
+                    this.items.push(item);
+                }
+            })
+            modal.present();
 
-            let alert = this.alertCtrl.create({
-                title: this.amountTitle,
-                message: this.amountText,
-                inputs: [
-                    {
-                        name: 'amount',
-                        placeholder: this.amountTitle,
-                        type: 'number'
-                    }
-                ],
-                buttons: [
-                    {
-                        text: this.buttonCheckOut,
-                        handler: data => {
-                            if (!data || !data.amount) {
-                                return;
-                            }
-                            data = data.amount;
-                            if (data > 0) {
-                                data = data * -1;
-                            }
-                            this.additem(this.items.length, barcodeData.text, data);
-                        }
-                    },
-                    {
-                        text: this.buttonCheckIn,
-                        handler: data => {
-                            if (!data || !data.amount) {
-                                return;
-                            }
-                            data = data.amount;
-                            if (data < 0) {
-                                data = data * -1;
-                            }
-                            this.additem(this.items.length, barcodeData.text, data);
-                        }
-                    }
-                ]
-            });
-            alert.present();
 
         }, (error) => {
             console.log(error);
@@ -105,24 +77,18 @@ export class CartPage {
 
     }
 
+
     removeItem(item: Item): void {
-        this.items = this.items.filter(i => i.id !== item.id);
+        this.items = this.items.filter(i => i.name !== item.name);
     }
 
-    additem(id: number, name: string, amount: number): void {
-        this.items.push({
-            id: id,
-            name: name,
-            amount: amount
-        });
-        this.storage.set('inventory', this.items);
-    }
 
     sendItems(): void {
 
         this.apiProvider.sendItems(this.items)
             .then(success => {
-                // TODO Alert
+
+                console.log("Success");
             })
             .catch(error => {
                 console.log(error);
