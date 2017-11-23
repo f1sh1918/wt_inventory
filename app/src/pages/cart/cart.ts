@@ -7,6 +7,8 @@ import {Storage} from "@ionic/storage";
 import {ApiProvider} from "../../providers/api";
 import {TransactionPage} from "../transaction/transaction";
 import {Costcenter} from "../../interfaces/costcenter";
+import {Toast} from "@ionic-native/toast";
+
 
 @Component({
     selector: 'page-cart',
@@ -15,8 +17,8 @@ import {Costcenter} from "../../interfaces/costcenter";
 export class CartPage {
 
     items: Item[] = [];
-    costcenters: Costcenter[] = [];
-
+  costcenters: Costcenter[] = [];
+   //costcenters: any;
     // Lokalisierung
     amountTitle: string;
     amountText: string;
@@ -26,13 +28,15 @@ export class CartPage {
     buttonConfirm: string;
     resetTitle: string;
     resetMessage: string;
+    barcode: string = 'Samsung Galaxy S7'
 
     constructor(private translateService: TranslateService,
                 private barcodeScanner: BarcodeScanner,
                 private alertCtrl: AlertController,
                 private storage: Storage,
                 private apiProvider: ApiProvider,
-                private modal: ModalController) {
+                private modal: ModalController,
+    private toast: Toast) {
 
         this.translateService.get('CART_AMOUNT').subscribe(value => this.amountTitle = value);
         this.translateService.get('CART_MSG_AMOUNT').subscribe(value => this.amountText = value);
@@ -42,6 +46,9 @@ export class CartPage {
         this.translateService.get('CONFIRM').subscribe(value => this.buttonConfirm = value);
         this.translateService.get('CART_MSG_RESET_TITLE').subscribe(value => this.resetTitle = value);
         this.translateService.get('CART_MSG_RESET_MESSAGE').subscribe(value => this.resetMessage = value);
+       // this.costcenters.push({id:71071652,kstnr:"100001101",description:"General Mgt. Asia/Pacific"});
+      this.initializeProviders();
+
 
         this.storage.get('inventory')
             .then(items => {
@@ -55,11 +62,33 @@ export class CartPage {
     }
 
 
+
+   private initializeProviders():void{
+       this.apiProvider.getCostCenter()
+           .then(data => {
+               this.costcenters = data;
+               console.log(this.costcenters);
+           });
+
+    }
+
     scanBarcode(): void {
+
+        let modal = this.modal.create(TransactionPage, {barcode: this.barcode, costcenters: this.costcenters});
+        modal.onDidDismiss(item => {
+            if (item) {
+                this.items.push(item);
+            }
+        })
+        modal.present();
+    }
+
+   /* scanBarcode(): void {
 
         const options: BarcodeScannerOptions = {
             showTorchButton: true,
         };
+
 
         this.barcodeScanner.scan(options).then((barcodeData) => {
             let modal = this.modal.create(TransactionPage, {barcode: barcodeData.text, costcenters: this.costcenters});
@@ -76,7 +105,7 @@ export class CartPage {
         });
 
     }
-
+*/
 
     removeItem(item: Item): void {
         this.items = this.items.filter(i => i.name !== item.name);
@@ -87,8 +116,14 @@ export class CartPage {
 
         this.apiProvider.sendItems(this.items)
             .then(success => {
-
+            this.toast.show('Transaction successfully sent','5000','bottom').subscribe(
+              toast => {
+                  console.log(toast);
+              }
+            );
                 console.log("Success");
+                this.items = []
+                this.storage.set('inventory', this.items);
             })
             .catch(error => {
                 console.log(error);

@@ -18,6 +18,7 @@ import {TranslateLoader, TranslateModule} from "@ngx-translate/core";
 import {TranslateHttpLoader} from "@ngx-translate/http-loader";
 import {TransactionPage} from "../pages/transaction/transaction";
 import {SearchPage} from "../pages/search/search";
+import {Toast} from "@ionic-native/toast";
 
 export function createTranslateLoader(http: HttpClient) {
     return new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -58,7 +59,8 @@ export function createTranslateLoader(http: HttpClient) {
         {provide: ErrorHandler, useClass: IonicErrorHandler},
         BarcodeScanner,
         AuthProvider,
-        ApiProvider
+        ApiProvider,
+        Toast
     ],
     bootstrap: [IonicApp]
 })

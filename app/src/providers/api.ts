@@ -1,9 +1,11 @@
 import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {Injectable} from "@angular/core";
 import {Auth} from "../interfaces/auth";
+
 import {Item} from "../interfaces/item";
-import {Costcenter} from "../interfaces/costcenter";
 import {AuthProvider} from "./auth";
+import {Costcenter} from "../interfaces/costcenter";
+
 
 @Injectable()
 export class ApiProvider {
@@ -25,6 +27,17 @@ export class ApiProvider {
         });
     }
 
+    // CostCenter-Stammdaten von API holen
+
+       getCostCenter(): Promise<Costcenter[]> {
+            const url = `${this.auth.apiUrl}/costcenters`;
+            return this.http.get(url, {headers: this.headers})
+                .toPromise()
+                .then(response => response.json().data as Costcenter[])
+                .catch(null);
+        }
+
+
 
     sendItems(items: Item[]): Promise<boolean> {
         const url = `${this.auth.apiUrl}/transaction`;
@@ -43,9 +56,7 @@ export class ApiProvider {
 
     }
 
-    getCostCenter(): Promise<Costcenter[]> {
-        return Promise.resolve([]);
-    }
+
 
 
 }

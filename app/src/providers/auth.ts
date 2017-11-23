@@ -5,9 +5,10 @@ import {Auth} from "../interfaces/auth";
 @Injectable()
 export class AuthProvider {
 
-    // API-URL
-    // public apiUrl = 'http://172.18.100.71:12345';
-    public apiUrl = 'http://194.156.206.161:12345';
+    // API-URL Intern
+     public apiUrl = 'http://172.18.100.71:12345';
+    //DMZ URL
+  //  public apiUrl = 'http://194.156.206.161:12345';
 
     constructor(private http: HttpClient) {
     }

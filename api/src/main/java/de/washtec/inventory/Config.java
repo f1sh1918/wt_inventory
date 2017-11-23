@@ -44,6 +44,7 @@ public class Config {
     static final String CMDB_STATUS = "A";
     // CIState aus der Prod-CMDB
     static final int CMDB_CISTATE = 92074366;
+    static final int CMDB_TRANSACTION_TRANSFERED = 171365538;
     // Active aus der Api-CMDB
     static final boolean CMDB_ACTIVE = true;
 
@@ -66,6 +67,7 @@ public class Config {
     static final String COL_TRANSACTION_COSTCENTER = "CostCenter";
     static final String COL_TRANSACTION_PRODUCT = "Product";
     static final String COL_TRANSACTION_USERNAME = "Username";
+    static final String COL_TRANSACTION_TRANSFERED = "Transfered";
 
 //Product Table
 

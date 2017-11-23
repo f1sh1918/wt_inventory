@@ -9,8 +9,10 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.google.gson.Gson;
 import de.washtec.inventory.helper.Asset;
 import de.washtec.inventory.helper.Auth;
+import de.washtec.inventory.helper.Costcenter;
 import de.washtec.inventory.helper.Transaction;
 import de.washtec.inventory.response.RAuth;
+import de.washtec.inventory.response.RCostcenter;
 import org.apache.log4j.Logger;
 import spark.Request;
 import spark.Response;
@@ -22,7 +24,9 @@ import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import java.io.UnsupportedEncodingException;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
 import static spark.Spark.*;
 
@@ -31,8 +35,14 @@ public class Main {
     // Logger zum Schreiben in die Console sowie Speichern in eine Datei (siehe log4j.properties)
     private static final Logger logger = Logger.getLogger(Main.class);
     private static final String UID = "UID";
+    // Caching
+    private static List<Costcenter> COSTCENTERS;
     public static void main(String[] args) {
 
+
+
+        // Costcenter cachen
+        COSTCENTERS = getCostcenters();
         // gson Instanz für JSON
         Gson gson = new Gson();
         // Port setzen
@@ -140,8 +150,22 @@ public class Main {
 
         }, gson::toJson);
 
-        get("/costcenter", (request, response) -> {
-            return null;
+        get("/costcenters", (request, response) -> {
+            // Prüfen ob Token gültig ist
+           if (!validateRequest(request, response)) {
+                halt(Config.UNAUTHORIZED);
+            }
+
+            // Bei einem Fehler abbrechen
+            if (COSTCENTERS == null) {
+                halt(Config.SERVER_ERROR);
+            }
+
+            // Liste zurückgeben
+            logger.info("SEND COSTCENTERS (count: " + COSTCENTERS.size() + ")");
+            // Status der Antwort setzen
+            response.status(Config.OK);
+            return new RCostcenter("get", COSTCENTERS);
         }, gson::toJson);
 
         post("/transaction", (request, response) -> {
@@ -183,10 +207,11 @@ public class Main {
                           Config.COL_TRANSACTION_AMOUNT + "\", \"" +
                           Config.COL_TRANSACTION_COSTCENTER + "\", \"" +
                           Config.COL_TRANSACTION_PRODUCT + "\", \"" +
-                          Config.COL_TRANSACTION_USERNAME + "\") VALUES (NOW(),?,?,?,(SELECT \"" +
+                                  Config.COL_TRANSACTION_USERNAME + "\", \"" +
+                          Config.COL_TRANSACTION_TRANSFERED + "\") VALUES (NOW(),?,?,?,(SELECT \"" +
                           Config.COL_PRODUCT_ID  + "\" from \"" +
                                   Config.TABLE_PRODUCT + "\" WHERE \"" +
-                                  Config.COL_PRODUCT_DESCRIPTION  + "\" = ?),? )"
+                                  Config.COL_PRODUCT_DESCRIPTION  + "\" = ?),?,? )"
                           );
 
 
@@ -196,8 +221,10 @@ public class Main {
                   statement.setInt(3, asset.costcenterId);
                   statement.setString(4, asset.barcode);
                   statement.setString(5, request.attribute(UID));
+                  statement.setInt(6, Config.CMDB_TRANSACTION_TRANSFERED);
 
               statement.execute();
+                  logger.info("[TRANSACTION] : "+ asset.barcode +" by" + request.attribute(UID) + " was sent");
 
 
               } catch (Exception e) {
@@ -396,6 +423,56 @@ public class Main {
         // Land des Accounts hinterlegen
 
         return true;
+
+    }
+
+    private static List<Costcenter> getCostcenters() {
+
+        // Datenbank Variablen sowie Liste für Mitarbeiter anlegen
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        List<Costcenter> costcenters = new ArrayList<>();
+
+        try {
+
+            // Treiber suchen
+            Class.forName("org.postgresql.Driver");
+            // Verbindung aufbauen
+            connection = DriverManager.getConnection("jdbc:postgresql://" + Config.CMDB_HOST + "/" + Config.CMDB_DATABASE, Config.CMDB_USERNAME, Config.CMDB_PASSWORD);
+
+            // Mitarbeiterdaten auslesen
+            statement = connection.prepareStatement("SELECT \"" + Costcenter.COL_COSTCENTER_ID + "\", \"" +
+                    Costcenter.COL_COSTCENTER_KSTNR + "\", \"" +
+                    Costcenter.COL_COSTCENTER_DESCRIPTION + "\" FROM \"" +
+                    Costcenter.TABLE_COSTCENTER + "\" WHERE \"" +
+                    Config.COL_CMDB_CISTATE + "\" = ? AND \"" +
+                    Config.COL_CMDB_STATUS + "\" = ?");
+
+            // Parameter setzen
+            statement.setInt(1, Config.CMDB_CISTATE);
+            statement.setString(2, String.valueOf(Config.CMDB_STATUS));
+
+
+            // Ergebnis in ResultSet zwischenspeichern
+            resultSet = statement.executeQuery();
+
+            // Durch Ergebnis loopen und je einen neuen Nutzer zur Liste hinzufügen
+            while (resultSet.next()) {
+                int id = resultSet.getInt(Costcenter.COL_COSTCENTER_ID);
+                String kstnr = resultSet.getString(Costcenter.COL_COSTCENTER_KSTNR);
+                String description = resultSet.getString(Costcenter.COL_COSTCENTER_DESCRIPTION);
+                costcenters.add(new Costcenter(id, kstnr,description));
+            }
+
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        } finally {
+            // Verbindung schließen
+            closeConnection(connection, statement, resultSet);
+        }
+
+        return costcenters;
 
     }
 
