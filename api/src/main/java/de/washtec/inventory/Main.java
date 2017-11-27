@@ -165,7 +165,7 @@ public class Main {
             logger.info("SEND COSTCENTERS (count: " + COSTCENTERS.size() + ")");
             // Status der Antwort setzen
             response.status(Config.OK);
-            return new RCostcenter("get", COSTCENTERS);
+            return new RCostcenter(COSTCENTERS);
         }, gson::toJson);
 
         post("/transaction", (request, response) -> {
@@ -224,7 +224,7 @@ public class Main {
                   statement.setInt(6, Config.CMDB_TRANSACTION_TRANSFERED);
 
               statement.execute();
-                  logger.info("[TRANSACTION] : "+ asset.barcode +" by" + request.attribute(UID) + " was sent");
+                  logger.info("[TRANSACTION] : "+ asset.barcode +" by " + request.attribute(UID) + " was sent");
 
 
               } catch (Exception e) {
@@ -447,7 +447,7 @@ public class Main {
                     Costcenter.COL_COSTCENTER_DESCRIPTION + "\" FROM \"" +
                     Costcenter.TABLE_COSTCENTER + "\" WHERE \"" +
                     Config.COL_CMDB_CISTATE + "\" = ? AND \"" +
-                    Config.COL_CMDB_STATUS + "\" = ?");
+                    Config.COL_CMDB_STATUS + "\" = ? ORDER BY \""+Costcenter.COL_COSTCENTER_KSTNR+"\"");
 
             // Parameter setzen
             statement.setInt(1, Config.CMDB_CISTATE);

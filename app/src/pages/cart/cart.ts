@@ -2,12 +2,12 @@ import {Component} from "@angular/core";
 import {TranslateService} from "@ngx-translate/core";
 import {Item} from "../../interfaces/item";
 import {BarcodeScanner, BarcodeScannerOptions} from "@ionic-native/barcode-scanner";
-import {AlertController, ModalController} from "ionic-angular";
+import {AlertController, ModalController, ToastController} from "ionic-angular";
 import {Storage} from "@ionic/storage";
 import {ApiProvider} from "../../providers/api";
 import {TransactionPage} from "../transaction/transaction";
 import {Costcenter} from "../../interfaces/costcenter";
-import {Toast} from "@ionic-native/toast";
+
 
 
 @Component({
@@ -36,7 +36,7 @@ export class CartPage {
                 private storage: Storage,
                 private apiProvider: ApiProvider,
                 private modal: ModalController,
-    private toast: Toast) {
+    private toast: ToastController) {
 
         this.translateService.get('CART_AMOUNT').subscribe(value => this.amountTitle = value);
         this.translateService.get('CART_MSG_AMOUNT').subscribe(value => this.amountText = value);
@@ -47,32 +47,40 @@ export class CartPage {
         this.translateService.get('CART_MSG_RESET_TITLE').subscribe(value => this.resetTitle = value);
         this.translateService.get('CART_MSG_RESET_MESSAGE').subscribe(value => this.resetMessage = value);
        // this.costcenters.push({id:71071652,kstnr:"100001101",description:"General Mgt. Asia/Pacific"});
-      this.initializeProviders();
-
-
-        this.storage.get('inventory')
-            .then(items => {
-                if (items) {
-                    this.items = items;
-                } else {
-                    this.items = [];
-                }
-            });
-
+    this.initialize();
     }
 
 
+    //initialize items
+  initialize():void {
+      this.storage.get('costcenters')
+          .then(costcenters => {
+                  if(costcenters) {
+                      this.costcenters=costcenters;
 
-   private initializeProviders():void{
-       this.apiProvider.getCostCenter()
-           .then(data => {
-               this.costcenters = data;
-               console.log(this.costcenters);
-           });
+                  }
+                  else{
+                      this.costcenters =[];
+                  }
+              }
 
-    }
+          );
 
-    scanBarcode(): void {
+
+      this.storage.get('inventory')
+          .then(items => {
+              if (items) {
+                  this.items = items;
+              } else {
+                  this.items = [];
+              }
+          });
+
+  }
+
+
+
+   /* scanBarcode(): void {
 
         let modal = this.modal.create(TransactionPage, {barcode: this.barcode, costcenters: this.costcenters});
         modal.onDidDismiss(item => {
@@ -81,9 +89,9 @@ export class CartPage {
             }
         })
         modal.present();
-    }
+    }*/
 
-   /* scanBarcode(): void {
+    scanBarcode(): void {
 
         const options: BarcodeScannerOptions = {
             showTorchButton: true,
@@ -91,10 +99,11 @@ export class CartPage {
 
 
         this.barcodeScanner.scan(options).then((barcodeData) => {
-            let modal = this.modal.create(TransactionPage, {barcode: barcodeData.text, costcenters: this.costcenters});
+            let modal = this.modal.create(TransactionPage, {barcode: this.barcode, costcenters: this.costcenters});
             modal.onDidDismiss(item => {
                 if (item) {
                     this.items.push(item);
+                    this.storage.set('inventory', this.items);
                 }
             })
             modal.present();
@@ -105,7 +114,7 @@ export class CartPage {
         });
 
     }
-*/
+
 
     removeItem(item: Item): void {
         this.items = this.items.filter(i => i.name !== item.name);
@@ -116,11 +125,13 @@ export class CartPage {
 
         this.apiProvider.sendItems(this.items)
             .then(success => {
-            this.toast.show('Transaction successfully sent','5000','bottom').subscribe(
-              toast => {
-                  console.log(toast);
-              }
-            );
+                let toast= this.toast.create(
+                    {
+                        message: 'transaction successfully sent',
+                        duration: 3000,
+                        position: 'bottom'
+                    });
+                toast.present();
                 console.log("Success");
                 this.items = []
                 this.storage.set('inventory', this.items);
@@ -163,6 +174,12 @@ export class CartPage {
     }
 
     refresh(): void {
+        this.apiProvider.getCostCenter()
+            .then(data => {
+                this.costcenters = data;
+                this.storage.set('costcenters', this.costcenters);
+                console.log(this.costcenters);
+            });
     }
 
 }

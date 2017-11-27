@@ -29,14 +29,13 @@ export class ApiProvider {
 
     // CostCenter-Stammdaten von API holen
 
-       getCostCenter(): Promise<Costcenter[]> {
-            const url = `${this.auth.apiUrl}/costcenters`;
-            return this.http.get(url, {headers: this.headers})
-                .toPromise()
-                .then(response => response.json().data as Costcenter[])
-                .catch(null);
-        }
-
+    getCostCenter(): Promise<Costcenter[]> {
+        const url = `${this.auth.apiUrl}/costcenters`;
+        return this.http.get(url, {headers: this.headers})
+            .toPromise()
+            .then(response => response['data'] as Costcenter[])
+            .catch(null);
+    }
 
 
     sendItems(items: Item[]): Promise<boolean> {
@@ -55,8 +54,6 @@ export class ApiProvider {
         ).catch(error => false);
 
     }
-
-
 
 
 }

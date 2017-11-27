@@ -10,12 +10,11 @@ import java.util.List;
 public class RCostcenter {
 
     // Variablen deklarieren (public da später zum Serialisieren genutzt)
-    public final String action;
-    public final List<Costcenter> list;
+
+    public final List<Costcenter> data;
 
     // Konstruktor
-    public RCostcenter(String action, List<Costcenter> list) {
-        this.action = action;
-        this.list = list;
+    public RCostcenter(List<Costcenter> data) {
+            this.data = data;
     }
 }
