@@ -24,12 +24,16 @@
 <ion-content padding>
     <ion-list>
 
-        <ion-item>
-            <ion-label fixed (tap)="searchKST()">CostCenter</ion-label>
-            <ion-input type="text" readonly *ngIf="costcenter" [ngModel]="costcenter.kstnr"></ion-input>
-            <button ion-button color="light" round item-end (tap)="searchKST()">
+        <ion-item (tap)="searchKST()">
+            <ion-label fixed >CostCenter</ion-label>
+            <ion-input type="text" readonly [ngModel]="costcenter.kstnr"></ion-input>
+            <button ion-button color="light" round item-end >
                 <ion-icon name="search"></ion-icon>
             </button>
+        </ion-item>
+        <ion-item>
+            <ion-label fixed>Price(Unit)</ion-label>
+            <ion-input type="number" min="0" step="0.01"[(ngModel)]="price"></ion-input>
         </ion-item>
 
         <ion-item>
@@ -47,7 +51,7 @@
                 </ion-col>
             </ion-row>
         </ion-grid>
-        <button ion-button color="light" round block (tap)="addItem(amount)">
+        <button ion-button color="light" round block (tap)="addItem(amount, price)">
             <ion-icon name="basket"></ion-icon>
         </button>
 

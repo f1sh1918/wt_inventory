@@ -43,7 +43,7 @@ export class ApiProvider {
         //filtern der items in data
         const data = [];
         for (let item of items) {
-            data.push({barcode: item.name, amount: item.amount, costcenterId: item.costcenter.id});
+            data.push({barcode: item.name, amount: item.amount, costcenterId: item.costcenter.id, price:item.price});
         }
 
         return this.http.post(url, {data: data}, {

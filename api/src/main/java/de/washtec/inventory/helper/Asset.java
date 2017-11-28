@@ -7,14 +7,16 @@ public class Asset {
     public String barcode;
     public int amount;
     public int costcenterId;
+    public float price;
     public Asset (){
 
 
     }
 
-    public Asset(String barcode, int amount, int costcenterId) {
+    public Asset(String barcode, int amount, int costcenterId, float price) {
         this.barcode = barcode;
         this.amount = amount;
         this.costcenterId = costcenterId;
+        this.price = price;
     }
 }

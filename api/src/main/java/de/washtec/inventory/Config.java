@@ -68,6 +68,7 @@ public class Config {
     static final String COL_TRANSACTION_PRODUCT = "Product";
     static final String COL_TRANSACTION_USERNAME = "Username";
     static final String COL_TRANSACTION_TRANSFERED = "Transfered";
+    static final String COL_TRANSACTION_PRICE = "Price";
 
 //Product Table
 

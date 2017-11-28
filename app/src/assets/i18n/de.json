@@ -13,6 +13,8 @@
   "LOGIN_SIGNOUT": "Abmelden",
   "CART_TITLE": "Warenkorb",
   "CART_AMOUNT": "Anzahl",
+  "CART_PRICE": "Preis",
+  "CART_KST": "KST",
   "CART_MSG_AMOUNT": "Bitte geben Sie die gewünschte Anzahl ein.",
   "CART_CHECKIN": "Rein",
   "CART_CHECKOUT": "Raus",

@@ -208,10 +208,11 @@ public class Main {
                           Config.COL_TRANSACTION_COSTCENTER + "\", \"" +
                           Config.COL_TRANSACTION_PRODUCT + "\", \"" +
                                   Config.COL_TRANSACTION_USERNAME + "\", \"" +
+                                  Config.COL_TRANSACTION_PRICE + "\", \"" +
                           Config.COL_TRANSACTION_TRANSFERED + "\") VALUES (NOW(),?,?,?,(SELECT \"" +
                           Config.COL_PRODUCT_ID  + "\" from \"" +
                                   Config.TABLE_PRODUCT + "\" WHERE \"" +
-                                  Config.COL_PRODUCT_DESCRIPTION  + "\" = ?),?,? )"
+                                  Config.COL_PRODUCT_DESCRIPTION  + "\" = ? AND \""+Config.COL_CMDB_STATUS+"\"=?),?,?,? )"
                           );
 
 
@@ -220,8 +221,10 @@ public class Main {
                   statement.setInt(2, asset.amount);
                   statement.setInt(3, asset.costcenterId);
                   statement.setString(4, asset.barcode);
-                  statement.setString(5, request.attribute(UID));
-                  statement.setInt(6, Config.CMDB_TRANSACTION_TRANSFERED);
+                  statement.setString(5, Config.CMDB_STATUS);
+                  statement.setString(6, request.attribute(UID));
+                  statement.setFloat(7, asset.price);
+                  statement.setInt(8, Config.CMDB_TRANSACTION_TRANSFERED);
 
               statement.execute();
                   logger.info("[TRANSACTION] : "+ asset.barcode +" by " + request.attribute(UID) + " was sent");

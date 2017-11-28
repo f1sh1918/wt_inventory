@@ -20,8 +20,9 @@ import {Item} from "../../interfaces/item";
 export class TransactionPage {
     amount: number = 0;
     barcode: string = "";
-    costcenter: Costcenter;
+    costcenter: Costcenter={id:-1,kstnr:null,description:null};
     costcenters: Costcenter[];
+    price: number = 0;
 
     constructor(public navCtrl: NavController, public navParams: NavParams, private viewContrl: ViewController, private modalContrl: ModalController, private toast:ToastController
     ) {
@@ -38,7 +39,7 @@ export class TransactionPage {
        this.viewContrl.dismiss();
 }
 
-    addItem(amount: number): void {
+    addItem(amount: number, price:number): void {
         if (!amount || amount == 0) {
             let toast= this.toast.create(
                 {
@@ -61,7 +62,7 @@ export class TransactionPage {
         }
     else{
 
-            const item: Item = {name: this.barcode, amount: amount, costcenter: this.costcenter};
+            const item: Item = {name: this.barcode, amount: amount, costcenter: this.costcenter, price:price};
             this.viewContrl.dismiss(item);
             let toast= this.toast.create(
                 {

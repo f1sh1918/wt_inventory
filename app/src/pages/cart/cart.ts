@@ -18,9 +18,11 @@ export class CartPage {
 
     items: Item[] = [];
   costcenters: Costcenter[] = [];
-   //costcenters: any;
+
     // Lokalisierung
     amountTitle: string;
+    kstTitle: string;
+    priceTitle: string;
     amountText: string;
     buttonCheckIn: string;
     buttonCheckOut: string;
@@ -39,6 +41,8 @@ export class CartPage {
     private toast: ToastController) {
 
         this.translateService.get('CART_AMOUNT').subscribe(value => this.amountTitle = value);
+        this.translateService.get('CART_PRICE').subscribe(value => this.priceTitle = value);
+        this.translateService.get('CART_KST').subscribe(value => this.kstTitle = value);
         this.translateService.get('CART_MSG_AMOUNT').subscribe(value => this.amountText = value);
         this.translateService.get('CART_CHECKIN').subscribe(value => this.buttonCheckIn = value);
         this.translateService.get('CART_CHECKOUT').subscribe(value => this.buttonCheckOut = value);
@@ -78,9 +82,9 @@ export class CartPage {
 
   }
 
+//FOR Browser Testing
 
-
-   /* scanBarcode(): void {
+  /*  scanBarcode(): void {
 
         let modal = this.modal.create(TransactionPage, {barcode: this.barcode, costcenters: this.costcenters});
         modal.onDidDismiss(item => {
@@ -89,7 +93,8 @@ export class CartPage {
             }
         })
         modal.present();
-    }*/
+    }
+    */
 
     scanBarcode(): void {
 
