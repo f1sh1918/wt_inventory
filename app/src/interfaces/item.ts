@@ -1,4 +1,5 @@
-import {Costcenter} from "./costcenter";
+import {Costcenter} from './costcenter';
+
 export interface Item {
     name: string;
     amount: number;

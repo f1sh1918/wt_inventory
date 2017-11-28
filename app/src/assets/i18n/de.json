@@ -15,9 +15,15 @@
   "CART_AMOUNT": "Anzahl",
   "CART_PRICE": "Preis",
   "CART_KST": "KST",
-  "CART_MSG_AMOUNT": "Bitte geben Sie die gewünschte Anzahl ein.",
-  "CART_CHECKIN": "Rein",
-  "CART_CHECKOUT": "Raus",
   "CART_MSG_RESET_TITLE": "Warenkorb zurücksetzen",
-  "CART_MSG_RESET_MESSAGE": "Wollen Sie den Warenkorb wirklich leeren? Damit gehen alle eingegebenen Daten verloren."
+  "CART_MSG_RESET_MESSAGE": "Wollen Sie den Warenkorb wirklich leeren? Damit gehen alle eingegebenen Daten verloren.",
+  "SEARCH": "Suche",
+  "COST_CENTER": "Kostenstelle",
+  "PRICE": "Preis (Einheit)",
+  "AMOUNT": "Anzahl",
+  "INVALID_AMOUNT": "Anzahl ungültig",
+  "INVALID_COST_CENTER": "Kostenstelle auswählen",
+  "ADDED_TO_BASKET": "Zu Warenkorb hinzugefügt",
+  "TRANSACTION_SUCCESS": "Transaktion erfolgreich gesendet",
+  "UPDATE_SUCCESS": "Aktualisierung erfolgreich"
 }
