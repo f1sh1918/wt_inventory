@@ -56,6 +56,7 @@ export class CartPage {
 
 
     //initialize items
+    //Wenn lokaler Speicher leer, zieht er einmalig die KST aus der CMDB
   initialize():void {
       this.storage.get('costcenters')
           .then(costcenters => {
@@ -65,6 +66,7 @@ export class CartPage {
                   }
                   else{
                       this.costcenters =[];
+                      this.refresh();
                   }
               }
 
