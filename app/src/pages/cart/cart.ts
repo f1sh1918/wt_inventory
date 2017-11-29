@@ -7,6 +7,7 @@ import {Storage} from '@ionic/storage';
 import {ApiProvider} from '../../providers/api';
 import {TransactionPage} from '../transaction/transaction';
 import {Costcenter} from '../../interfaces/costcenter';
+import {Product} from "../../interfaces/product";
 
 
 @Component({
@@ -17,6 +18,7 @@ export class CartPage {
 
     items: Item[] = [];
     costcenters: Costcenter[] = [];
+    products: Product[] = [];
 
     // Lokalisierung
     amountTitle: string;
@@ -27,13 +29,11 @@ export class CartPage {
     buttonConfirm: string;
     resetTitle: string;
     resetMessage: string;
-<<<<<<< HEAD
 
-=======
     transactionSuccessText: string;
     errorText: string;
     updateSuccessText: string;
->>>>>>> 6f204c845883202997b1034da8a453aaf5ff3fe6
+
 
     constructor(private translateService: TranslateService,
                 private barcodeScanner: BarcodeScanner,
@@ -70,10 +70,12 @@ export class CartPage {
                     }
                     else {
                         this.costcenters = [];
-                        // this.refresh();
+                        this.refresh();
                     }
                 }
             );
+
+
 
         this.storage.get('inventory')
             .then(items => {
@@ -84,6 +86,13 @@ export class CartPage {
                 }
             });
 
+        this.refreshProducts();
+
+
+
+
+
+
     }
 
     scanBarcode(): void {
@@ -93,14 +102,7 @@ export class CartPage {
         };
 
         this.barcodeScanner.scan(options).then((barcodeData) => {
-<<<<<<< HEAD
-            let modal = this.modal.create(TransactionPage, {barcode:  barcodeData.text, costcenters: this.costcenters});
-=======
-            const modal = this.modalCtrl.create(TransactionPage, {
-                barcode: barcodeData.text,
-                costcenters: this.costcenters
-            });
->>>>>>> 6f204c845883202997b1034da8a453aaf5ff3fe6
+            let modal = this.modalCtrl.create(TransactionPage, {barcode: barcodeData.text, costcenters: this.costcenters, products:this.products});
             modal.onDidDismiss(item => {
                 if (item) {
                     this.items.push(item);
@@ -114,6 +116,7 @@ export class CartPage {
         });
 
     }
+
 
     removeItem(item: Item): void {
         this.items = this.items.filter(i => i.name !== item.name && i.amount !== item.amount);
@@ -198,6 +201,21 @@ export class CartPage {
             });
 
     }
+
+    refreshProducts(): void{
+        this.apiProvider.getProducts()
+            .then(products => {
+
+                this.products = products;
+                this.storage.set('products', this.products);
+
+            })
+            .catch(error => {
+                console.log(error);
+                this.showError();
+            });
+    }
+
 
     showError(): void {
         let toast = this.toastCtrl.create({

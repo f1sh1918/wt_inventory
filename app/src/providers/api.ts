@@ -5,6 +5,7 @@ import {Auth} from '../interfaces/auth';
 import {Item} from '../interfaces/item';
 import {AuthProvider} from './auth';
 import {Costcenter} from '../interfaces/costcenter';
+import {Product} from "../interfaces/product";
 
 @Injectable()
 export class ApiProvider {
@@ -37,6 +38,29 @@ export class ApiProvider {
 
                 if (costcenters) {
                     return costcenters;
+                }
+
+                return [];
+
+            })
+            .catch(this.handleError);
+
+    }
+
+    // Produkte von API holen
+    getProducts(): Promise<Product[]> {
+
+        const url = `${this.auth.apiUrl}/products`;
+
+        return this.http.get(url, {headers: this.headers})
+            .toPromise()
+            .then(response => {
+
+                let products = response['data'] as Product[];
+
+                if (products) {
+                    return products;
+
                 }
 
                 return [];

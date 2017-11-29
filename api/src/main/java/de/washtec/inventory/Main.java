@@ -7,12 +7,10 @@ import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.google.gson.Gson;
-import de.washtec.inventory.helper.Asset;
-import de.washtec.inventory.helper.Auth;
-import de.washtec.inventory.helper.Costcenter;
-import de.washtec.inventory.helper.Transaction;
+import de.washtec.inventory.helper.*;
 import de.washtec.inventory.response.RAuth;
 import de.washtec.inventory.response.RCostcenter;
+import de.washtec.inventory.response.RProduct;
 import org.apache.log4j.Logger;
 import spark.Request;
 import spark.Response;
@@ -37,12 +35,14 @@ public class Main {
     private static final String UID = "UID";
     // Caching
     private static List<Costcenter> COSTCENTERS;
+    private static List<Product> PRODUCTS;
     public static void main(String[] args) {
 
 
 
         // Costcenter cachen
         COSTCENTERS = getCostcenters();
+        PRODUCTS = getProducts();
         // gson Instanz für JSON
         Gson gson = new Gson();
         // Port setzen
@@ -166,6 +166,24 @@ public class Main {
             // Status der Antwort setzen
             response.status(Config.OK);
             return new RCostcenter(COSTCENTERS);
+        }, gson::toJson);
+
+        get("/products", (request, response) -> {
+            // Prüfen ob Token gültig ist
+            if (!validateRequest(request, response)) {
+                halt(Config.UNAUTHORIZED);
+            }
+
+            // Bei einem Fehler abbrechen
+            if (PRODUCTS == null) {
+                halt(Config.SERVER_ERROR);
+            }
+
+            // Liste zurückgeben
+            logger.info("SEND PRODUCTS (count: " + PRODUCTS.size() + ")");
+            // Status der Antwort setzen
+            response.status(Config.OK);
+            return new RProduct(PRODUCTS);
         }, gson::toJson);
 
         post("/transaction", (request, response) -> {
@@ -476,6 +494,54 @@ public class Main {
         }
 
         return costcenters;
+
+    }
+
+    private static List<Product> getProducts() {
+
+        // Datenbank Variablen sowie Liste für Mitarbeiter anlegen
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        List<Product> products = new ArrayList<>();
+
+        try {
+
+            // Treiber suchen
+            Class.forName("org.postgresql.Driver");
+            // Verbindung aufbauen
+            connection = DriverManager.getConnection("jdbc:postgresql://" + Config.CMDB_HOST + "/" + Config.CMDB_DATABASE, Config.CMDB_USERNAME, Config.CMDB_PASSWORD);
+
+            // Mitarbeiterdaten auslesen
+            statement = connection.prepareStatement("SELECT \"" + Product.COL_PRODUCT_BARCODE + "\", \"" +
+                    Product.COL_PRODUCT_AMOUNT + "\" FROM \"" +
+                    Product.TABLE_PRODUCT + "\" WHERE \"" +
+                    Config.COL_CMDB_CISTATE + "\" = ? AND \"" +
+                    Config.COL_CMDB_STATUS + "\" = ? ORDER BY \""+Product.COL_PRODUCT_BARCODE+"\"");
+
+            // Parameter setzen
+            statement.setInt(1, Config.CMDB_CISTATE);
+            statement.setString(2, String.valueOf(Config.CMDB_STATUS));
+
+
+            // Ergebnis in ResultSet zwischenspeichern
+            resultSet = statement.executeQuery();
+
+            // Durch Ergebnis loopen und je einen neuen Nutzer zur Liste hinzufügen
+            while (resultSet.next()) {
+                String barcode = resultSet.getString(Product.COL_PRODUCT_BARCODE);
+                int amount = resultSet.getInt(Product.COL_PRODUCT_AMOUNT);
+                products.add(new Product(barcode,amount));
+            }
+
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        } finally {
+            // Verbindung schließen
+            closeConnection(connection, statement, resultSet);
+        }
+
+        return products;
 
     }
 
