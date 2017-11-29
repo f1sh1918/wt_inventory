@@ -1,14 +1,14 @@
-import {HttpClient} from "@angular/common/http";
-import {Injectable} from "@angular/core";
-import {Auth} from "../interfaces/auth";
+import {HttpClient} from '@angular/common/http';
+import {Injectable} from '@angular/core';
+import {Auth} from '../interfaces/auth';
 
 @Injectable()
 export class AuthProvider {
 
-    // API-URL Intern
-  //  public apiUrl = 'http://172.18.100.71:12345';
-    //DMZ URL
-   public apiUrl = 'http://194.156.206.161:12345';
+    // Interne Url
+    // public apiUrl = 'http://172.18.100.71:12345';
+    // DMZ Url
+    public apiUrl = 'http://194.156.206.161:12345';
 
     constructor(private http: HttpClient) {
     }
@@ -39,13 +39,6 @@ export class AuthProvider {
             .catch(this.handleError);
 
 
-    }
-
-    // Lokales Token löschen
-    logout(): void {
-        if (localStorage.getItem('inventoryUser')) {
-            localStorage.removeItem('inventoryUser');
-        }
     }
 
     // Fehler ausgeben und Misserfolg zurückgeben

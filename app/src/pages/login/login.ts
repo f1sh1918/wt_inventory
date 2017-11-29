@@ -1,8 +1,8 @@
-import {Component} from "@angular/core";
-import {AlertController, Loading, LoadingController, NavController} from "ionic-angular";
-import {AuthProvider} from "../../providers/auth";
-import {TranslateService} from "@ngx-translate/core";
-import {CartPage} from "../cart/cart";
+import {Component} from '@angular/core';
+import {AlertController, Loading, LoadingController, NavController} from 'ionic-angular';
+import {AuthProvider} from '../../providers/auth';
+import {TranslateService} from '@ngx-translate/core';
+import {CartPage} from '../cart/cart';
 
 @Component({
     selector: 'page-login',

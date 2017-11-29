@@ -1,11 +1,3 @@
-<!--
-  Generated template for the TransactionPage page.
-
-  See http://ionicframework.com/docs/components/#navigation for more info on
-  Ionic pages and navigation.
-
-  ngModel [=Lesen / ( = Schreiben
--->
 <ion-header>
     <ion-toolbar>
         <ion-title>
@@ -13,48 +5,45 @@
         </ion-title>
         <ion-buttons start>
             <button ion-button (click)="dismiss(null)">
-                <span ion-text color="primary" showWhen="ios">Cancel</span>
+                <span ion-text color="primary" showWhen="ios">{{'CANCEL' | translate}}</span>
                 <ion-icon name="md-close" showWhen="android,windows,core"></ion-icon>
             </button>
         </ion-buttons>
     </ion-toolbar>
 </ion-header>
-
-
 <ion-content padding>
     <ion-list>
-
-        <ion-item (tap)="searchKST()">
-            <ion-label fixed >CostCenter</ion-label>
+        <ion-item (tap)="searchCostCenter()">
+            <ion-label fixed>{{'COST_CENTER' | translate}}</ion-label>
             <ion-input type="text" readonly [ngModel]="costcenter.kstnr"></ion-input>
-            <button ion-button color="light" round item-end >
+            <button ion-button color="light" round item-end>
                 <ion-icon name="search"></ion-icon>
             </button>
         </ion-item>
         <ion-item>
-            <ion-label fixed>Price(Unit)</ion-label>
-            <ion-input type="number" min="0" step="0.01"[(ngModel)]="price"></ion-input>
+            <ion-label fixed>{{'PRICE' | translate}}</ion-label>
+            <ion-input type="number" min="0" step="0.01" [(ngModel)]="price"></ion-input>
         </ion-item>
-
         <ion-item>
-            <ion-label fixed>Amount</ion-label>
+            <ion-label fixed>{{'AMOUNT' | translate}}</ion-label>
             <ion-input type="number" [(ngModel)]="amount"></ion-input>
         </ion-item>
-
         <ion-grid>
             <ion-row>
                 <ion-col>
-                    <button ion-button color="danger" round block (tap)="amount=amount-1">-</button>
+                    <button ion-button color="danger" round block (tap)="amount = amount - 1">
+                        <ion-icon name="remove"></ion-icon>
+                    </button>
                 </ion-col>
                 <ion-col>
-                    <button ion-button color="secondary" round block (tap)="amount=amount+1">+</button>
+                    <button ion-button color="secondary" round block (tap)="amount = amount + 1">
+                        <ion-icon name="add"></ion-icon>
+                    </button>
                 </ion-col>
             </ion-row>
         </ion-grid>
-        <button ion-button color="light" round block (tap)="addItem(amount, price)">
+        <button ion-button color="light" round block (tap)="addItem()">
             <ion-icon name="basket"></ion-icon>
         </button>
-
     </ion-list>
-
 </ion-content>
