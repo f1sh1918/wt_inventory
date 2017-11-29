@@ -1,12 +1,12 @@
 <ion-header>
     <ion-toolbar>
-        <ion-title *ngFor="let product of currentProduct">
+        <ion-title>
             <ion-grid>
                 <ion-row>
                     <ion-col>
             {{barcode}}
                     </ion-col>
-                    <ion-col>({{product.amount}} in stock)</ion-col>
+                    <ion-col>({{stock}} in stock)</ion-col>
                 </ion-row>
             </ion-grid>
         </ion-title>

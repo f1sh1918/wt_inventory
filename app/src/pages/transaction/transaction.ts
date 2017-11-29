@@ -73,8 +73,9 @@ export class TransactionPage {
     }
 
     addItem(): void {
-
-        if (!this.amount || this.amount === 0) {
+        //absolutwert
+        let checkamount = Math.abs(this.amount);
+        if (!this.amount || this.amount === 0 || checkamount > this.stock) {
             this.showToast(this.invalidAmount);
             return;
         }
@@ -132,6 +133,8 @@ export class TransactionPage {
 
     getStock(): void {
         this.currentProduct = this.products.filter(c => c.barcode === this.barcode);
+        this.stock = this.currentProduct[0].amount;
+
     }
 
     showError(): void {

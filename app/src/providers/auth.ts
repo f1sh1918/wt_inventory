@@ -6,7 +6,7 @@ import {Auth} from '../interfaces/auth';
 export class AuthProvider {
 
     // Interne Url
-    // public apiUrl = 'http://172.18.100.71:12345';
+   //  public apiUrl = 'http://172.18.100.71:12345';
     // DMZ Url
     public apiUrl = 'http://194.156.206.161:12345';
 

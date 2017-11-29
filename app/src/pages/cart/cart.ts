@@ -30,6 +30,9 @@ export class CartPage {
     resetTitle: string;
     resetMessage: string;
 
+    //testzwecke
+    barcode: string = "BenQ BL2405";
+
     transactionSuccessText: string;
     errorText: string;
     updateSuccessText: string;
@@ -95,7 +98,7 @@ export class CartPage {
 
     }
 
-    scanBarcode(): void {
+  scanBarcode(): void {
 
         const options: BarcodeScannerOptions = {
             showTorchButton: true,
@@ -116,6 +119,7 @@ export class CartPage {
         });
 
     }
+
 
 
     removeItem(item: Item): void {
