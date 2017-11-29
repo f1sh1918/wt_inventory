@@ -67,7 +67,7 @@ export class TransactionPage {
             let toast= this.toast.create(
                 {
                     message: 'item added to basket',
-                    duration: 3000,
+                    duration: 2000,
                     position: 'bottom'
                 });
             toast.present();

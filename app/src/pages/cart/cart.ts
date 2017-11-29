@@ -30,7 +30,7 @@ export class CartPage {
     buttonConfirm: string;
     resetTitle: string;
     resetMessage: string;
-    barcode: string = 'Samsung Galaxy S7'
+
 
     constructor(private translateService: TranslateService,
                 private barcodeScanner: BarcodeScanner,
@@ -106,7 +106,7 @@ export class CartPage {
 
 
         this.barcodeScanner.scan(options).then((barcodeData) => {
-            let modal = this.modal.create(TransactionPage, {barcode: this.barcode, costcenters: this.costcenters});
+            let modal = this.modal.create(TransactionPage, {barcode:  barcodeData.text, costcenters: this.costcenters});
             modal.onDidDismiss(item => {
                 if (item) {
                     this.items.push(item);
